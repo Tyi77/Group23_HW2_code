@@ -6,60 +6,51 @@ import matplotlib.pyplot as plt
 import numpy as np
 import scipy
 
-def MyConvolve(img, kernel):
-    '''
-- Zero Padding
-- Square kernel
-'''
-    padding_size = kernel.shape[0] // 2
-    convole = np.zeros((img))
+imgdir = "./data/task1and2_hybrid_pyramid/"
+imgnames = os.listdir(imgdir)
 
-filefolder = "./data/task1and2_hybrid_pyramid/"
-filepaths = os.listdir(filefolder)
+# Setting
+kernel_size = 3
+isNormal = True
 
-fp = f'{filefolder}{filepaths[0]}'
+# Create Dir
+outdir = f"./ImagePyramid"
+if not os.path.exists(outdir):
+    os.mkdir(outdir)
 
-img = cv.imread(fp)
-grayImg = cv.cvtColor(img, cv.COLOR_RGB2GRAY)
-# cv.imshow('Test', grayImg)
-# cv.waitKey()
-# print(grayImg.shape)
-# pdb.set_trace()
+ks_n_dir = os.path.join(outdir, f"ks{kernel_size}_{("n" if isNormal else "non")}")
+if not os.path.exists(ks_n_dir):
+    os.mkdir(ks_n_dir)
 
-#3*3 Gassian filter
-kernel_size = 15
-x, y = np.mgrid[-(kernel_size // 2) : kernel_size // 2 + 1, -(kernel_size // 2) : kernel_size // 2 + 1]
-gaussian_kernel = (1 / 2 * np.pi) * np.exp(-(x**2+y**2) / 2) # sigma=1
-#Normalization
-# gaussian_kernel = gaussian_kernel / gaussian_kernel.sum()
+# Calculate
+for imgname in imgnames:
+    # fp = f'{imgdir}{imgnames[0]}'
+    fp = os.path.join(imgdir, imgname)
 
-# plt.imshow(gaussian_kernel, cmap=plt.get_cmap('jet'), interpolation='nearest')
-# plt.colorbar()
-# plt.show()
+    img = cv.imread(fp)
+    grayImg = cv.cvtColor(img, cv.COLOR_RGB2GRAY)
 
-# a = np.array([[1,2,3], [1,2,3], [1,2,3]])
-# b = np.array([[1,2,3]])
-# a_f = np.fft.fft2(a)
-# b_f = np.fft.fft2(b)
-# c_f = a_f * b_f
-# c = np.fft.ifft2(c_f).real
-# print(c)
+    # Gassian filter
+    x, y = np.mgrid[-(kernel_size // 2) : kernel_size // 2 + 1, -(kernel_size // 2) : kernel_size // 2 + 1]
+    gaussian_kernel = (1 / 2 * np.pi) * np.exp(-(x**2+y**2) / 2) # sigma=1
+    # Normalization
+    if isNormal:
+        gaussian_kernel = gaussian_kernel / gaussian_kernel.sum()
 
-# print(grayImg)
-for idx in range(8):
-    convolve_image = scipy.signal.convolve2d(grayImg, gaussian_kernel, mode='same', boundary='symm', fillvalue=1)
-    # convolve_image = MyConvolve(grayImg)
-    # plt.imshow(convolve_image)
-    # plt.show()
+    outputdirname = imgname.split('.')[0]
+    outputdir = os.path.join(ks_n_dir, outputdirname)
+    # outputdir = os.path.abspath(os.path.join(fp, 'Non'))
+    if not os.path.exists(outputdir):
+        os.mkdir(outputdir)
 
-    plt.imshow(convolve_image, cmap=plt.get_cmap('gray'))
-    # plt.colorbar()
-    # plt.show()
+    for idx in range(8):
+        convolve_image = scipy.signal.convolve2d(grayImg, gaussian_kernel, mode='same', boundary='symm', fillvalue=1)
 
-    # if idx == 0:
-    #     plt.savefig(f'my_image_{idx}_ks{kernel_size}.png')
-    # elif idx == 1:
-    #     plt.savefig(f'my_image_{idx}_ks{kernel_size}.png')
-    plt.savefig(f'./ImagePyramid/my_image_{idx}_ks{kernel_size}.png')
-    
-    grayImg = convolve_image[::2, ::2]
+        plt.imshow(convolve_image, cmap=plt.get_cmap('gray'))
+
+        if isNormal:
+            plt.savefig(f'{outputdir}/{idx}.png')
+        else:
+            plt.savefig(f'{outputdir}/{idx}.png')
+        
+        grayImg = convolve_image[::2, ::2]
