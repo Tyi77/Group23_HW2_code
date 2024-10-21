@@ -4,7 +4,6 @@ import pdb
 import cv2 as cv
 import matplotlib.pyplot as plt
 import numpy as np
-import scipy
 
 def MyConvolve(img, kernel, fill_value):
     ks = kernel.shape[0]
@@ -24,7 +23,7 @@ def MyConvolve(img, kernel, fill_value):
     
 def MyImagePyramid(ori_img, kernel_size=5, levels=5) -> list:
     # Do the Image Pyramid
-    # Gassian filter
+    # Gaussian filter
     x, y = np.mgrid[-(kernel_size // 2) : kernel_size // 2 + 1, -(kernel_size // 2) : kernel_size // 2 + 1]
     gaussian_kernel = (1 / 2 * np.pi) * np.exp(-(x**2+y**2) / 2) # sigma=1
     # Normalization
@@ -70,12 +69,13 @@ def main(imgdir, kernel_size=5, levels=5):
         img = cv.imread(fp)
         grayImg = cv.cvtColor(img, cv.COLOR_RGB2GRAY)
 
-        # Gassian filter
+        # Gaussian Kernel
         x, y = np.mgrid[-(kernel_size // 2) : kernel_size // 2 + 1, -(kernel_size // 2) : kernel_size // 2 + 1]
         gaussian_kernel = (1 / 2 * np.pi) * np.exp(-(x**2+y**2) / 2) # sigma=1
         # Normalization
         gaussian_kernel = gaussian_kernel / gaussian_kernel.sum()
 
+        # Check Output Path
         outputdirname = imgname.split('.')[0]
         outputdir = os.path.join(ks_n_dir, outputdirname)
         if not os.path.exists(outputdir):
