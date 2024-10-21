@@ -7,14 +7,15 @@ imgnames = os.listdir(imgdir)
 
 # Hybrid Image
 # Setting
-cutoff = 5
+cutoff = 10
+isGaussian = False
 
 # Create Dir
 outdir = f"./HybridImage"
 if not os.path.exists(outdir):
     os.mkdir(outdir)
 
-sigma_dir = os.path.join(outdir, f"cutoff{cutoff}")
+sigma_dir = os.path.join(outdir, f"{'Gaussian' if isGaussian else 'ideal'}_cutoff{cutoff}")
 if not os.path.exists(sigma_dir):
     os.mkdir(sigma_dir)
 
@@ -36,9 +37,21 @@ def create_filter(img, isHighPass):
     for i in range(h):
         for j in range(w):
             if isHighPass:
-                H[i, j] = 1 - np.exp(-((i - h // 2) ** 2 + (j - w // 2) ** 2) / (2 * cutoff ** 2))
+                if isGaussian:
+                    H[i, j] = 1 - np.exp(-((i - h // 2) ** 2 + (j - w // 2) ** 2) / (2 * cutoff ** 2))
+                else:
+                    if (i - h // 2) ** 2 + (j - w // 2) ** 2 <= cutoff ** 2:
+                        H[i, j] = 0
+                    else:
+                        H[i, j] = 1
             else:
-                H[i, j] = np.exp(-((i - h // 2) ** 2 + (j - w // 2) ** 2) / (2 * cutoff ** 2))
+                if isGaussian:
+                    H[i, j] = np.exp(-((i - h // 2) ** 2 + (j - w // 2) ** 2) / (2 * cutoff ** 2))
+                else:
+                    if (i - h // 2) ** 2 + (j - w // 2) ** 2 <= cutoff ** 2:
+                        H[i, j] = 1
+                    else:
+                        H[i, j] = 0
     return H
 
 # Multiply F(u,v) by a filter function H(u,v).
