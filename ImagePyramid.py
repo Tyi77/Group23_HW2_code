@@ -22,13 +22,28 @@ def MyConvolve(img, kernel, fill_value):
 
     return output_img[half_ks: half_ks + img.shape[0], half_ks: half_ks + img.shape[1]]
     
-def main():
+def MyImagePyramid(ori_img, kernel_size=5, levels=5) -> list:
+    # Do the Image Pyramid
+    # Gassian filter
+    x, y = np.mgrid[-(kernel_size // 2) : kernel_size // 2 + 1, -(kernel_size // 2) : kernel_size // 2 + 1]
+    gaussian_kernel = (1 / 2 * np.pi) * np.exp(-(x**2+y**2) / 2) # sigma=1
+    # Normalization
+    gaussian_kernel = gaussian_kernel / gaussian_kernel.sum()
+
+    out_list = [ori_img]
+    for _ in range(1, levels):
+        # convolve_image = scipy.signal.convolve2d(grayImg, gaussian_kernel, mode='same', boundary='symm', fillvalue=1)
+        convolve_image = MyConvolve(ori_img, gaussian_kernel, fill_value=0)
+        ds_image = convolve_image[::2, ::2]
+        out_list.append(ds_image)
+        
+        ori_img = ds_image
+    
+    return out_list
+
+def main(kernel_size=5, levels=5):
     imgdir = "./data/task1and2_hybrid_pyramid/"
     imgnames = os.listdir(imgdir)
-
-    # Setting
-    kernel_size = 7
-    number_of_image = 5
 
     # Create Dir
     outdir = f"./ImagePyramid"
@@ -63,7 +78,7 @@ def main():
 
         cv.imwrite(f'{outputdir}/0.png', grayImg)
 
-        for idx in range(1, number_of_image):
+        for idx in range(1, levels):
             # convolve_image = scipy.signal.convolve2d(grayImg, gaussian_kernel, mode='same', boundary='symm', fillvalue=1)
             convolve_image = MyConvolve(grayImg, gaussian_kernel, fill_value=0)
             ds_image = convolve_image[::2, ::2]
@@ -76,4 +91,4 @@ def main():
             grayImg = ds_image
 
 if __name__ == '__main__':
-    main()
+    main(kernel_size=5, levels=5)
