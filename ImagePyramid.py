@@ -32,7 +32,6 @@ def MyImagePyramid(ori_img, kernel_size=5, levels=5) -> list:
 
     out_list = [ori_img]
     for _ in range(1, levels):
-        # convolve_image = scipy.signal.convolve2d(grayImg, gaussian_kernel, mode='same', boundary='symm', fillvalue=1)
         convolve_image = MyConvolve(ori_img, gaussian_kernel, fill_value=0)
         ds_image = convolve_image[::2, ::2]
         out_list.append(ds_image)
@@ -41,8 +40,15 @@ def MyImagePyramid(ori_img, kernel_size=5, levels=5) -> list:
     
     return out_list
 
-def main(kernel_size=5, levels=5):
-    imgdir = "./data/task1and2_hybrid_pyramid/"
+def MySaveSpectrum(ori_img, dst_path):    
+    fft_result = np.fft.fft2(ori_img)
+    fft_result_shift = np.fft.fftshift(fft_result)
+    magnitude = np.abs(fft_result_shift)
+    magnitude = np.log(magnitude + 1)
+
+    plt.imsave(dst_path, magnitude)
+
+def main(imgdir, kernel_size=5, levels=5):
     imgnames = os.listdir(imgdir)
 
     # Create Dir
@@ -72,23 +78,32 @@ def main(kernel_size=5, levels=5):
 
         outputdirname = imgname.split('.')[0]
         outputdir = os.path.join(ks_n_dir, outputdirname)
-        # outputdir = os.path.abspath(os.path.join(fp, 'Non'))
         if not os.path.exists(outputdir):
             os.mkdir(outputdir)
 
-        cv.imwrite(f'{outputdir}/0.png', grayImg)
+        outdir_spatial = os.path.join(outputdir, "spatial")
+        if not os.path.exists(outdir_spatial):
+            os.mkdir(outdir_spatial)
 
+        outdir_spectrum = os.path.join(outputdir, "spectrum")
+        if not os.path.exists(outdir_spectrum):
+            os.mkdir(outdir_spectrum)
+
+        # Save the original image
+        cv.imwrite(f'{outdir_spatial}/0.png', grayImg)
+        MySaveSpectrum(grayImg, f'{outdir_spectrum}/0.png')
+
+        # Recursively use convolution and downsampling
         for idx in range(1, levels):
-            # convolve_image = scipy.signal.convolve2d(grayImg, gaussian_kernel, mode='same', boundary='symm', fillvalue=1)
             convolve_image = MyConvolve(grayImg, gaussian_kernel, fill_value=0)
             ds_image = convolve_image[::2, ::2]
 
-            # plt.imshow(ds_image, cmap=plt.get_cmap('gray'))
-
-            # plt.savefig(f'{outputdir}/{idx}.png')
-            cv.imwrite(f'{outputdir}/{idx}.png', ds_image)
+            cv.imwrite(f'{outdir_spatial}/{idx}.png', ds_image)
+            MySaveSpectrum(ds_image, f'{outdir_spectrum}/{idx}.png')
             
             grayImg = ds_image
 
 if __name__ == '__main__':
-    main(kernel_size=5, levels=5)
+    # imgdir = "./data/task1and2_hybrid_pyramid/"
+    imgdir = "./my_data/"
+    main(imgdir=imgdir, kernel_size=5, levels=5)

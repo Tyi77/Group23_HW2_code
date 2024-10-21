@@ -2,3 +2,4 @@
 t*.py
 ImagePyramid_T.py
 ImagePyramid_GT.py
+/my_data
